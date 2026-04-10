@@ -20,6 +20,7 @@ const projectId = requireEnv('SANITY_STUDIO_PROJECT_ID')
 const dataset = requireEnv('SANITY_STUDIO_DATASET')
 const previewOrigin =
   process.env.SANITY_STUDIO_PREVIEW_ORIGIN?.trim() || 'http://localhost:4321'
+const previewUrl = `${previewOrigin.replace(/\/$/, '')}/?preview=true`
 
 const resolve = {
   locations: {
@@ -51,9 +52,7 @@ export default defineConfig({
     structureTool(),
     visionTool(),
     presentationTool({
-      previewUrl: {
-        origin: previewOrigin,
-      },
+      previewUrl,
       resolve,
     }),
   ],

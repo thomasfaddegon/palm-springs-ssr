@@ -8,15 +8,22 @@ const projectId =
 const dataset =
   import.meta.env.PUBLIC_SANITY_STUDIO_DATASET ||
   import.meta.env.PUBLIC_SANITY_DATASET;
-const visualEditingEnabled =
+const visualEditingByEnv =
   import.meta.env.PUBLIC_SANITY_VISUAL_EDITING_ENABLED === "true";
 const token = import.meta.env.SANITY_API_READ_TOKEN;
 const studioUrl = import.meta.env.PUBLIC_SANITY_STUDIO_URL || "/studio";
-const postTypeFilter = visualEditingEnabled
-  ? `_type == "post"`
-  : `_type == "post" && !(_id in path("drafts.**"))`;
+function getPostTypeFilter(visualEditingEnabled: boolean) {
+  return visualEditingEnabled
+    ? `_type == "post"`
+    : `_type == "post" && !(_id in path("drafts.**"))`;
+}
 
-async function runQuery<T>(query: string, params: Record<string, string> = {}) {
+async function runQuery<T>(
+  query: string,
+  params: Record<string, string> = {},
+  options: { preview?: boolean } = {}
+) {
+  const visualEditingEnabled = visualEditingByEnv || options.preview === true;
   if (visualEditingEnabled && !token) {
     throw new Error(
       "SANITY_API_READ_TOKEN is required when PUBLIC_SANITY_VISUAL_EDITING_ENABLED is true."
@@ -48,18 +55,23 @@ async function runQuery<T>(query: string, params: Record<string, string> = {}) {
   return result;
 }
 
-export async function getPosts(): Promise<Post[]> {
+export async function getPosts(preview = false): Promise<Post[]> {
+  const postTypeFilter = getPostTypeFilter(preview || visualEditingByEnv);
   return await runQuery<Post[]>(
-    `*[${postTypeFilter} && defined(slug.current) && defined(title)] | order(_createdAt desc)`
+    `*[${postTypeFilter} && defined(slug.current) && defined(title)] | order(_createdAt desc)`,
+    {},
+    { preview }
   );
 }
 
-export async function getPost(slug: string): Promise<Post | null> {
+export async function getPost(slug: string, preview = false): Promise<Post | null> {
+  const postTypeFilter = getPostTypeFilter(preview || visualEditingByEnv);
   return await runQuery<Post | null>(
     `*[${postTypeFilter} && slug.current == $slug && defined(title)][0]`,
     {
       slug,
-    }
+    },
+    { preview }
   );
 }
 
