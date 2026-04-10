@@ -12,6 +12,11 @@ const visualEditingByEnv =
   import.meta.env.PUBLIC_SANITY_VISUAL_EDITING_ENABLED === "true";
 const token = import.meta.env.SANITY_API_READ_TOKEN;
 const studioUrl = import.meta.env.PUBLIC_SANITY_STUDIO_URL || "/studio";
+function canUseVisualEditing(preview = false) {
+  const requested = visualEditingByEnv || preview;
+  return requested && Boolean(token);
+}
+
 function getPostTypeFilter(visualEditingEnabled: boolean) {
   return visualEditingEnabled
     ? `_type == "post"`
@@ -23,10 +28,11 @@ async function runQuery<T>(
   params: Record<string, string> = {},
   options: { preview?: boolean } = {}
 ) {
-  const visualEditingEnabled = visualEditingByEnv || options.preview === true;
-  if (visualEditingEnabled && !token) {
-    throw new Error(
-      "SANITY_API_READ_TOKEN is required when PUBLIC_SANITY_VISUAL_EDITING_ENABLED is true."
+  const previewRequested = visualEditingByEnv || options.preview === true;
+  const visualEditingEnabled = canUseVisualEditing(options.preview === true);
+  if (previewRequested && !token) {
+    console.warn(
+      "Preview was requested but SANITY_API_READ_TOKEN is missing. Falling back to published content."
     );
   }
 
@@ -56,7 +62,7 @@ async function runQuery<T>(
 }
 
 export async function getPosts(preview = false): Promise<Post[]> {
-  const postTypeFilter = getPostTypeFilter(preview || visualEditingByEnv);
+  const postTypeFilter = getPostTypeFilter(canUseVisualEditing(preview));
   return await runQuery<Post[]>(
     `*[${postTypeFilter} && defined(slug.current) && defined(title)] | order(_createdAt desc)`,
     {},
@@ -65,7 +71,7 @@ export async function getPosts(preview = false): Promise<Post[]> {
 }
 
 export async function getPost(slug: string, preview = false): Promise<Post | null> {
-  const postTypeFilter = getPostTypeFilter(preview || visualEditingByEnv);
+  const postTypeFilter = getPostTypeFilter(canUseVisualEditing(preview));
   return await runQuery<Post | null>(
     `*[${postTypeFilter} && slug.current == $slug && defined(title)][0]`,
     {

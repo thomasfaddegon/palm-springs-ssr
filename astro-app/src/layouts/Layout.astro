@@ -9,9 +9,11 @@ interface Props {
 }
 
 const { title } = Astro.props;
-const visualEditingEnabled =
+const previewRequested =
   import.meta.env.PUBLIC_SANITY_VISUAL_EDITING_ENABLED === "true" ||
   Astro.url.searchParams.get("preview") === "true";
+const visualEditingEnabled =
+  previewRequested && Boolean(import.meta.env.SANITY_API_READ_TOKEN);
 ---
 
 <!DOCTYPE html>

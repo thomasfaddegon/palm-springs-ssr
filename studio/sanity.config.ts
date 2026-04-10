@@ -4,22 +4,19 @@ import {visionTool} from '@sanity/vision'
 import {defineLocations, presentationTool} from 'sanity/presentation'
 import {schemaTypes} from './src/schemaTypes'
 
-function requireEnv(
-  name:
-    | 'SANITY_STUDIO_PROJECT_ID'
-    | 'SANITY_STUDIO_DATASET',
-) {
-  const value = process.env[name]
+function requireStudioEnv(name: 'SANITY_STUDIO_PROJECT_ID' | 'SANITY_STUDIO_DATASET') {
+  const value = import.meta.env[name] || process.env[name]
   if (!value || !value.trim()) {
     throw new Error(`Missing required environment variable: ${name}`)
   }
   return value.trim()
 }
 
-const projectId = requireEnv('SANITY_STUDIO_PROJECT_ID')
-const dataset = requireEnv('SANITY_STUDIO_DATASET')
+const projectId = requireStudioEnv('SANITY_STUDIO_PROJECT_ID')
+const dataset = requireStudioEnv('SANITY_STUDIO_DATASET')
 const previewOrigin =
-  process.env.SANITY_STUDIO_PREVIEW_ORIGIN?.trim() || 'http://localhost:4321'
+  (import.meta.env.SANITY_STUDIO_PREVIEW_ORIGIN || process.env.SANITY_STUDIO_PREVIEW_ORIGIN)
+    ?.trim() || 'http://localhost:4321'
 const previewUrl = `${previewOrigin.replace(/\/$/, '')}/?preview=true`
 
 const resolve = {
