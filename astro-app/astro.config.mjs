@@ -34,6 +34,7 @@ export default defineConfig(({ mode }) => {
         }
       : {}),
 
+<<<<<<< HEAD
     integrations: [
       sanity({
         projectId,
@@ -68,4 +69,18 @@ export default defineConfig(({ mode }) => {
       },
     },
   };
+=======
+  vite: {
+    optimizeDeps: {
+      include: [
+        "react/compiler-runtime",
+        "lodash/isObject.js",
+        "lodash/groupBy.js",
+        "lodash/keyBy.js",
+        "lodash/partition.js",
+        "lodash/sortedIndex.js",
+      ],
+    },
+  },
+>>>>>>> parent of a9867c8 (disable minification)
 });
