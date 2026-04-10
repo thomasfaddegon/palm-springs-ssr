@@ -20,13 +20,17 @@ import react from "@astrojs/react";
 // https://docs.astro.build/en/guides/server-side-rendering/#adding-an-adapter
 import vercel from "@astrojs/vercel";
 
+import tailwindcss from "@tailwindcss/vite";
+
 // https://astro.build/config
 export default defineConfig({
   // Astro 6 removed "hybrid"; "static" now covers that behavior.
   output: "static",
+
   adapter: vercel({
     runtime: "nodejs20.x",
   }),
+
   integrations: [
     sanity({
       projectId,
@@ -38,4 +42,8 @@ export default defineConfig({
     }),
     react(), // Required for Sanity Studio
   ],
+
+  vite: {
+    plugins: [tailwindcss()],
+  },
 });
