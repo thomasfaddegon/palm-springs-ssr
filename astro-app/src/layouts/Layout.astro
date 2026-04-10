@@ -83,7 +83,7 @@ const visualEditingEnabled =
         </p>
       </footer>
     </div>
-    {visualEditingEnabled && <VisualEditing client:only="react" />}
+    <VisualEditing enabled={visualEditingEnabled} />
   </body>
 </html>
 
