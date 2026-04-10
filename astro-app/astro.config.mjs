@@ -6,12 +6,15 @@ const {
   PUBLIC_SANITY_STUDIO_DATASET,
   PUBLIC_SANITY_PROJECT_ID,
   PUBLIC_SANITY_DATASET,
+  PUBLIC_SANITY_VISUAL_EDITING_ENABLED,
+  PUBLIC_SANITY_STUDIO_URL,
 } = loadEnv(import.meta.env.MODE, process.cwd(), "");
 import { defineConfig } from "astro/config";
 
 // Different environments use different variables
 const projectId = PUBLIC_SANITY_STUDIO_PROJECT_ID || PUBLIC_SANITY_PROJECT_ID;
 const dataset = PUBLIC_SANITY_STUDIO_DATASET || PUBLIC_SANITY_DATASET;
+const visualEditingEnabled = PUBLIC_SANITY_VISUAL_EDITING_ENABLED === "true";
 
 import sanity from "@sanity/astro";
 import react from "@astrojs/react";
@@ -24,12 +27,15 @@ import tailwindcss from "@tailwindcss/vite";
 
 // https://astro.build/config
 export default defineConfig({
-  // Astro 6 removed "hybrid"; "static" now covers that behavior.
-  output: "static",
+  output: visualEditingEnabled ? "server" : "static",
 
-  adapter: vercel({
-    runtime: "nodejs20.x",
-  }),
+  ...(visualEditingEnabled
+    ? {
+        adapter: vercel({
+          runtime: "nodejs20.x",
+        }),
+      }
+    : {}),
 
   integrations: [
     sanity({
@@ -39,11 +45,26 @@ export default defineConfig({
       useCdn: false,
       // `false` if you want to ensure fresh data at build time
       apiVersion: "2024-12-08", // Set to date of setup to use the latest API version
+      stega: visualEditingEnabled
+        ? {
+            studioUrl: PUBLIC_SANITY_STUDIO_URL || "/studio",
+          }
+        : false,
     }),
     react(), // Required for Sanity Studio
   ],
 
   vite: {
     plugins: [tailwindcss()],
+    optimizeDeps: {
+      include: [
+        "react/compiler-runtime",
+        "lodash/isObject.js",
+        "lodash/groupBy.js",
+        "lodash/keyBy.js",
+        "lodash/partition.js",
+        "lodash/sortedIndex.js",
+      ],
+    },
   },
 });

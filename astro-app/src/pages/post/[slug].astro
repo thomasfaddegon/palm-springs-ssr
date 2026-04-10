@@ -6,6 +6,9 @@ import { formatDate } from "../../utils";
 import { urlFor } from "../../utils/image";
 import { getPost, getPosts } from "../../utils/sanity";
 
+export const prerender =
+  import.meta.env.PUBLIC_SANITY_VISUAL_EDITING_ENABLED !== "true";
+
 export async function getStaticPaths() {
   const posts = await getPosts();
   return posts.map((post) => ({

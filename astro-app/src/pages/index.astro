@@ -4,6 +4,9 @@ import Welcome from "../components/Welcome.astro";
 import Layout from "../layouts/Layout.astro";
 import { getPosts } from "../utils/sanity";
 
+export const prerender =
+  import.meta.env.PUBLIC_SANITY_VISUAL_EDITING_ENABLED !== "true";
+
 const posts = await getPosts();
 ---
 
