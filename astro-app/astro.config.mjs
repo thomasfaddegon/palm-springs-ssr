@@ -1,4 +1,5 @@
 import { defineConfig } from "astro/config";
+import { loadEnv } from "vite";
 const isTruthy = (value) => String(value).toLowerCase() === "true";
 
 import sanity from "@sanity/astro";
@@ -8,12 +9,19 @@ import react from "@astrojs/react";
 // https://docs.astro.build/en/guides/server-side-rendering/#adding-an-adapter
 import netlify from "@astrojs/netlify";
 
+const fileEnv = loadEnv(process.env.NODE_ENV || "production", process.cwd(), "");
+const env = {
+  ...fileEnv,
+  ...process.env,
+};
+
 const projectId =
-  process.env.PUBLIC_SANITY_STUDIO_PROJECT_ID || process.env.PUBLIC_SANITY_PROJECT_ID;
-const dataset = process.env.PUBLIC_SANITY_STUDIO_DATASET || process.env.PUBLIC_SANITY_DATASET;
-const visualEditingEnabled = isTruthy(process.env.PUBLIC_SANITY_VISUAL_EDITING_ENABLED);
-const isNetlifyBuild = isTruthy(process.env.NETLIFY);
-const rawStudioUrl = process.env.PUBLIC_SANITY_STUDIO_URL || "/studio";
+  env.PUBLIC_SANITY_STUDIO_PROJECT_ID || env.PUBLIC_SANITY_PROJECT_ID;
+const dataset = env.PUBLIC_SANITY_STUDIO_DATASET || env.PUBLIC_SANITY_DATASET;
+const visualEditingEnabled = isTruthy(env.PUBLIC_SANITY_VISUAL_EDITING_ENABLED);
+const isNetlifyBuild = isTruthy(env.NETLIFY);
+const isStaticBuild = env.BUILD_MODE === "static";
+const rawStudioUrl = env.PUBLIC_SANITY_STUDIO_URL || "/studio";
 const studioUrl =
   rawStudioUrl.startsWith("http://") ||
   rawStudioUrl.startsWith("https://") ||
@@ -23,9 +31,8 @@ const studioUrl =
 
 // https://astro.build/config
 export default defineConfig({
-  // Keep Netlify deployment in SSR mode so visual editing can run reliably.
-  output: "server",
-  adapter: netlify(),
+  output: isStaticBuild ? "static" : "server",
+  ...(isStaticBuild ? {} : { adapter: netlify() }),
 
   integrations: [
     sanity({

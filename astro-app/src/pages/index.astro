@@ -4,7 +4,7 @@ import Welcome from "../components/Welcome.astro";
 import Layout from "../layouts/Layout.astro";
 import { getPosts } from "../utils/sanity";
 
-export const prerender = false;
+export const prerender = import.meta.env.BUILD_MODE === "static";
 
 const previewMode = Astro.url.searchParams.get("preview") === "true";
 const posts = await getPosts(previewMode);

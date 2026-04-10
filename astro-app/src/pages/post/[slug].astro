@@ -1,15 +1,27 @@
 ---
+import type { InferGetStaticParamsType } from "astro";
 import { PortableText } from "astro-portabletext";
 import Layout from "../../layouts/Layout.astro";
 import { formatDate } from "../../utils";
 import { urlFor } from "../../utils/image";
-import { getPost } from "../../utils/sanity";
+import { getPost, getPosts } from "../../utils/sanity";
 
-export const prerender = false;
+export const prerender = import.meta.env.BUILD_MODE === "static";
 
-const { slug } = Astro.params;
+export async function getStaticPaths() {
+  const posts = await getPosts(false);
+  return posts.map((post) => ({
+    params: { slug: post.slug.current },
+    props: { post },
+  }));
+}
+
+type Params = InferGetStaticParamsType<typeof getStaticPaths>;
+const { slug } = Astro.params as Params;
 const previewMode = Astro.url.searchParams.get("preview") === "true";
-const post = slug ? await getPost(slug, previewMode) : null;
+const postFromProps = (Astro.props as { post?: Awaited<ReturnType<typeof getPost>> })
+  .post;
+const post = postFromProps ?? (slug ? await getPost(slug, previewMode) : null);
 
 if (!post) {
   throw new Error(`Post not found for slug: ${slug}`);

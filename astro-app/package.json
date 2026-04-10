@@ -6,8 +6,9 @@
     "dev": "astro dev",
     "start": "astro dev",
     "build": "astro check && tsc --noEmit && astro build",
+    "build:static": "BUILD_MODE=static PUBLIC_SANITY_VISUAL_EDITING_ENABLED=false sh -c 'astro check && tsc --noEmit && astro build'",
     "build:preview": "PUBLIC_SANITY_VISUAL_EDITING_ENABLED=true astro check && tsc --noEmit && astro build",
-    "build:netlify": "if [ \"$BRANCH\" = \"staging\" ] || [ \"$NETLIFY_BRANCH\" = \"staging\" ]; then PUBLIC_SANITY_VISUAL_EDITING_ENABLED=true npm run build; else PUBLIC_SANITY_VISUAL_EDITING_ENABLED=false npm run build; fi",
+    "build:netlify": "if [ \"$BRANCH\" = \"staging\" ] || [ \"$NETLIFY_BRANCH\" = \"staging\" ]; then BUILD_MODE=server PUBLIC_SANITY_VISUAL_EDITING_ENABLED=true npm run build; else BUILD_MODE=server PUBLIC_SANITY_VISUAL_EDITING_ENABLED=false npm run build; fi",
     "preview": "astro preview",
     "astro": "astro"
   },
