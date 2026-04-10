@@ -51,6 +51,11 @@ export default defineConfig({
   ],
 
   vite: {
+    build: {
+      // Work around intermittent esbuild parse issues in CI
+      // for @sanity/visual-editing staging bundles.
+      minify: visualEditingEnabled ? false : "esbuild",
+    },
     optimizeDeps: {
       include: [
         "react/compiler-runtime",
