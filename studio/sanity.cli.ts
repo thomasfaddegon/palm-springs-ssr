@@ -7,14 +7,25 @@
 
 import {defineCliConfig} from 'sanity/cli'
 
-const projectId = process.env.SANITY_STUDIO_PROJECT_ID || '<your project ID>'
-const dataset = process.env.SANITY_STUDIO_DATASET || 'production'
+function requireEnv(name: 'SANITY_STUDIO_PROJECT_ID' | 'SANITY_STUDIO_DATASET') {
+  const value = process.env[name]
+  if (!value || !value.trim()) {
+    throw new Error(`Missing required environment variable: ${name}`)
+  }
+  return value.trim()
+}
+
+const projectId = requireEnv('SANITY_STUDIO_PROJECT_ID')
+const dataset = requireEnv('SANITY_STUDIO_DATASET')
 
 export default defineCliConfig({
   api: {
     projectId,
     dataset,
   },
-  studioHost: process.env.SANITY_STUDIO_STUDIO_HOST || '', // Visit https://www.sanity.io/docs/environment-variables to leanr more about using environment variables for local & production.
-  autoUpdates: true,
+  studioHost: process.env.SANITY_STUDIO_STUDIO_HOST || '', // Visit https://www.sanity.io/docs/environment-variables to learn more about local & production env vars.
+  deployment: {
+    autoUpdates: true,
+    appId: 'yxu3jdnoin8ji6vlb0nus5za',
+  },
 })
