@@ -68,14 +68,23 @@ cd studio/
 npx sanity deploy
 ```
 
-#### 2. Deploy Astro app to Vercel
+#### 2. Deploy Astro app to Netlify
 
-You have the freedom to deploy your Astro app to your hosting provider of choice. With Vercel and GitHub being a popular choice, we'll cover the basics of that approach.
+You have the freedom to deploy your Astro app to your hosting provider of choice. This project includes a `netlify.toml` that builds from `astro-app`.
 
 1. Create a GitHub repository from this project. [Learn more](https://docs.github.com/en/migrations/importing-source-code/using-the-command-line-to-import-source-code/adding-locally-hosted-code-to-github).
-2. Create a new Vercel project and connect it to your Github repository.
-3. Set the `Root Directory` to your Astro app.
-4. Configure your Environment Variables.
+2. Create a new Netlify site and connect it to your Github repository.
+3. Keep the default build settings from `netlify.toml`.
+4. Set branch deploys for your workflow:
+   - `prod` (or `main`): static build
+   - `dev`: static build
+   - `staging`: SSR preview build (visual editing)
+5. Configure your Environment Variables:
+   - `PUBLIC_SANITY_STUDIO_PROJECT_ID`
+   - `PUBLIC_SANITY_STUDIO_DATASET`
+   - `PUBLIC_SANITY_STUDIO_URL`
+   - `SANITY_API_READ_TOKEN` (required for `staging` preview mode)
+   - In Sanity Studio, set `SANITY_STUDIO_PREVIEW_ORIGIN` to your Netlify `staging` URL.
 
 #### 3. Invite a collaborator
 

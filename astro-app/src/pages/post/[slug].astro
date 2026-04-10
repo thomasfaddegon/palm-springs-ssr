@@ -13,16 +13,22 @@ export async function getStaticPaths() {
   const posts = await getPosts();
   return posts.map((post) => ({
     params: { slug: post.slug.current },
+    props: { post },
   }));
 }
 
 type Params = InferGetStaticParamsType<typeof getStaticPaths>;
 const { slug } = Astro.params as Params;
+const postFromProps = (Astro.props as { post?: Awaited<ReturnType<typeof getPost>> })
+  .post;
+const post = postFromProps ?? (await getPost(slug));
 
-const post = await getPost(slug);
+if (!post) {
+  throw new Error(`Post not found for slug: ${slug}`);
+}
 ---
 
-<Layout title={post.title!}>
+<Layout title={post.title ?? "Untitled post"}>
   <section class="post">
     {
       post.mainImage ? (
@@ -36,7 +42,7 @@ const post = await getPost(slug);
       )
     }
     <div class="post__container">
-      <h1 class="post__title">{post.title}</h1>
+      <h1 class="post__title">{post.title ?? "Untitled post"}</h1>
       <p class="post__excerpt">{post.excerpt}</p>
       <p class="post__date">
         {formatDate(post._createdAt)}

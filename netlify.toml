@@ -1,0 +1,7 @@
+[build]
+  base = "."
+  command = "npm run build:netlify --workspace=astro-app"
+  publish = "astro-app/dist"
+
+[build.environment]
+  NODE_VERSION = "20"

@@ -1,7 +1,6 @@
 import { createClient } from "@sanity/client";
 import type { PortableTextBlock } from "@portabletext/types";
 import type { ImageAsset, Slug } from "@sanity/types";
-import groq from "groq";
 
 const projectId =
   import.meta.env.PUBLIC_SANITY_STUDIO_PROJECT_ID ||
@@ -13,6 +12,9 @@ const visualEditingEnabled =
   import.meta.env.PUBLIC_SANITY_VISUAL_EDITING_ENABLED === "true";
 const token = import.meta.env.SANITY_API_READ_TOKEN;
 const studioUrl = import.meta.env.PUBLIC_SANITY_STUDIO_URL || "/studio";
+const postTypeFilter = visualEditingEnabled
+  ? `_type == "post"`
+  : `_type == "post" && !(_id in path("drafts.**"))`;
 
 async function runQuery<T>(query: string, params: Record<string, string> = {}) {
   if (visualEditingEnabled && !token) {
@@ -48,13 +50,13 @@ async function runQuery<T>(query: string, params: Record<string, string> = {}) {
 
 export async function getPosts(): Promise<Post[]> {
   return await runQuery<Post[]>(
-    groq`*[_type == "post" && defined(slug.current)] | order(_createdAt desc)`
+    `*[${postTypeFilter} && defined(slug.current) && defined(title)] | order(_createdAt desc)`
   );
 }
 
-export async function getPost(slug: string): Promise<Post> {
-  return await runQuery<Post>(
-    groq`*[_type == "post" && slug.current == $slug][0]`,
+export async function getPost(slug: string): Promise<Post | null> {
+  return await runQuery<Post | null>(
+    `*[${postTypeFilter} && slug.current == $slug && defined(title)][0]`,
     {
       slug,
     }
