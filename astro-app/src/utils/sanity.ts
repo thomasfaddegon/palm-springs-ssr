@@ -12,9 +12,11 @@ const visualEditingByEnv =
   import.meta.env.PUBLIC_SANITY_VISUAL_EDITING_ENABLED === "true";
 const token = import.meta.env.SANITY_API_READ_TOKEN;
 const studioUrl = import.meta.env.PUBLIC_SANITY_STUDIO_URL || "/studio";
-function canUseVisualEditing(preview = false) {
+function getPreviewState(preview = false) {
   const requested = visualEditingByEnv || preview;
-  return requested && Boolean(token);
+  const hasToken = Boolean(token);
+  const useDrafts = requested && hasToken;
+  return { requested, hasToken, useDrafts };
 }
 
 function getPostTypeFilter(visualEditingEnabled: boolean) {
@@ -28,22 +30,23 @@ async function runQuery<T>(
   params: Record<string, string> = {},
   options: { preview?: boolean } = {}
 ) {
-  const previewRequested = visualEditingByEnv || options.preview === true;
-  const visualEditingEnabled = canUseVisualEditing(options.preview === true);
-  if (previewRequested && !token) {
+  const { requested, hasToken, useDrafts } = getPreviewState(
+    options.preview === true
+  );
+  if (requested && !hasToken) {
     console.warn(
       "Preview was requested but SANITY_API_READ_TOKEN is missing. Falling back to published content."
     );
   }
 
-  const perspective = visualEditingEnabled ? "drafts" : "published";
+  const perspective = useDrafts ? "drafts" : "published";
   const client = createClient({
     projectId,
     dataset,
     apiVersion: "2024-12-08",
     useCdn: false,
     perspective,
-    stega: visualEditingEnabled
+    stega: requested
       ? {
           enabled: true,
           studioUrl,
@@ -51,7 +54,7 @@ async function runQuery<T>(
       : {
           enabled: false,
         },
-    ...(visualEditingEnabled ? { token } : {}),
+    ...(useDrafts ? { token } : {}),
   });
 
   const { result } = await client.fetch<T>(query, params, {
@@ -62,7 +65,8 @@ async function runQuery<T>(
 }
 
 export async function getPosts(preview = false): Promise<Post[]> {
-  const postTypeFilter = getPostTypeFilter(canUseVisualEditing(preview));
+  const { useDrafts } = getPreviewState(preview);
+  const postTypeFilter = getPostTypeFilter(useDrafts);
   return await runQuery<Post[]>(
     `*[${postTypeFilter} && defined(slug.current) && defined(title)] | order(_createdAt desc)`,
     {},
@@ -71,7 +75,8 @@ export async function getPosts(preview = false): Promise<Post[]> {
 }
 
 export async function getPost(slug: string, preview = false): Promise<Post | null> {
-  const postTypeFilter = getPostTypeFilter(canUseVisualEditing(preview));
+  const { useDrafts } = getPreviewState(preview);
+  const postTypeFilter = getPostTypeFilter(useDrafts);
   return await runQuery<Post | null>(
     `*[${postTypeFilter} && slug.current == $slug && defined(title)][0]`,
     {
